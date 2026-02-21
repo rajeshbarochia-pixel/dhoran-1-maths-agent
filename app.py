@@ -63,3 +63,4 @@ else:
 st.markdown("---")
 
 st.caption("Powered by Gemini AI | GitHub પ્રોજેક્ટ માટે તૈયાર")
+
