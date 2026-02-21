@@ -33,7 +33,7 @@ with st.sidebar:
 if pdf_content:
     if api_key:
         genai.configure(api_key=api_key)
-        model = genai.GenerativeModel('gemini-1.5-flash-latest')
+        model = genai.GenerativeModel('gemini-1.5-pro-latest')
 
         user_input = st.text_input("તમારો પ્રશ્ન પૂછો:", placeholder="દા.ત. આ પાઠમાં કઈ કઈ વસ્તુઓ ગણવાની છે?")
 
@@ -63,6 +63,7 @@ else:
 st.markdown("---")
 
 st.caption("Powered by Gemini AI | GitHub પ્રોજેક્ટ માટે તૈયાર")
+
 
 
 
