@@ -1,69 +1,66 @@
 import streamlit as st
-import google.generativeai as genai
+from google import genai
 from pypdf import PdfReader
 import os
 
-# ૧. પેજ સેટઅપ
-st.set_page_config(page_title="ગણિત શિક્ષક - ધોરણ ૧", page_icon="🧮")
-
+# Page setup
+st.set_page_config(page_title="ધોરણ-૧ ગણિત એજન્ટ", page_icon="🧮")
 st.title("🎓 ધોરણ-૧ ગણિત એજન્ટ")
 st.markdown("---")
 
-# ૨. PDF માંથી ડેટા લોડ કરવો (કાયમી ફાઇલ)
-@st.cache_resource  # આનાથી વારંવાર PDF લોડ નહીં કરવી પડે
+# PDF Load
+@st.cache_resource
 def load_pdf_data(file_path):
     if not os.path.exists(file_path):
         return None
     reader = PdfReader(file_path)
-    full_text = ""
+    text = ""
     for page in reader.pages:
-        full_text += page.extract_text() + "\n"
-    return full_text
+        text += page.extract_text() + "\n"
+    return text
 
-# તમારી PDF ફાઇલનું નામ અહીં લખો
 pdf_content = load_pdf_data("ekam_ganit.pdf")
 
-# ૩. સાઇડબારમાં API Key
+# Sidebar
 with st.sidebar:
     st.header("સેટિંગ્સ")
     api_key = st.text_input("Gemini API Key નાખો:", type="password")
     st.info("નોંધ: આ એજન્ટ ફક્ત આપેલ PDF માંથી જ જવાબ આપશે.")
 
-# ૪. મુખ્ય લોજિક
+# Main Logic
 if pdf_content:
     if api_key:
-        genai.configure(api_key=api_key)
-        model = genai.GenerativeModel('gemini-1.5-pro-latest')
+        client = genai.Client(api_key=api_key)
 
-        user_input = st.text_input("તમારો પ્રશ્ન પૂછો:", placeholder="દા.ત. આ પાઠમાં કઈ કઈ વસ્તુઓ ગણવાની છે?")
+        user_input = st.text_input("તમારો પ્રશ્ન પૂછો:")
 
         if user_input:
-            # એજન્ટ માટે કડક સૂચનાઓ
             prompt = f"""
-            તમે ધોરણ 1 ના બાળકો માટેના એક આદર્શ ગણિત શિક્ષક છો. 
-            તમારે ફક્ત નીચે આપેલા 'Context' ના આધારે જ જવાબ આપવાનો છે.
-            જો જવાબ 'Context' માં ન હોય, તો કહો કે 'માફ કરશો, આ માહિતી તમારા પુસ્તકમાં નથી'.
-            
-            Context: {pdf_content}
-            પ્રશ્ન: {user_input}
+            તમે ધોરણ 1 ના બાળકો માટેના ગણિત શિક્ષક છો.
+            ફક્ત નીચેના Context પરથી જ જવાબ આપો.
+            જો જવાબ ન મળે તો કહો: 'માફ કરશો, આ માહિતી તમારા પુસ્તકમાં નથી.'
+
+            Context:
+            {pdf_content}
+
+            પ્રશ્ન:
+            {user_input}
             """
 
             with st.spinner("વિચારી રહ્યો છું..."):
                 try:
-                    response = model.generate_content(prompt)
+                    response = client.models.generate_content(
+                        model="gemini-2.0-flash",
+                        contents=prompt
+                    )
                     st.success("જવાબ:")
                     st.write(response.text)
                 except Exception as e:
                     st.error(f"ભૂલ આવી: {e}")
     else:
-        st.warning("ચેટ શરૂ કરવા માટે કૃપા કરીને સાઇડબારમાં તમારી API Key નાખો.")
+        st.warning("કૃપા કરીને API Key નાખો.")
 else:
-    st.error("ભૂલ: 'ekam_ganit.pdf' ફાઇલ મળી નથી. ખાતરી કરો કે તમે ફાઇલ અપલોડ કરી છે.")
+    st.error("ekam_ganit.pdf ફાઇલ મળી નથી.")
 
 st.markdown("---")
-
-st.caption("Powered by Gemini AI | GitHub પ્રોજેક્ટ માટે તૈયાર")
-
-
-
-
+st.caption("Powered by Gemini 2.0")
